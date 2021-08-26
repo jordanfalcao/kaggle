@@ -50,6 +50,7 @@ import tensorflow as tf
 
 train_df = pd.read_csv('train.csv')
 test_df = pd.read_csv('test.csv')
+combine = [train_df, test_df]
 
 # train_df = pd.read_csv('../input/titanic/train.csv')
 
@@ -130,8 +131,48 @@ train_df[["Parch", "Survived"]].groupby(['Parch'], as_index=False).mean().sort_v
 """## Suvivors by age:"""
 
 g = sns.FacetGrid(train_df, col='Survived', height=5)
-g.map(plt.hist, 'Age', bins=30)
+g.map(plt.hist, 'Age', bins=32)
 plt.show()
 
+"""- Most passengers are between 15-35 age;
+- Infants - age <=4 - had high survival rate;
+- Oldest passengers - age = 80 - survived;
+- Large number of 15-25 year olds did not survive.
 
+## Creating new feature 'Title' extracting from existing 'Name':
+"""
+
+# extracting 'Title' from the 'Name'
+for dataset in combine:
+    dataset['Title'] = dataset.Name.str.extract(' ([A-Za-z]+)\.', expand=False)
+
+pd.crosstab(train_df['Title'], train_df['Sex'])
+
+"""- We can replace many titles with a more common name or classify them as 'Rare'."""
+
+for dataset in combine:
+    dataset['Title'] = dataset['Title'].replace(['Lady', 'Countess','Capt', 'Col',\
+ 	'Don', 'Dr', 'Major', 'Rev', 'Sir', 'Jonkheer', 'Dona'], 'Rare')
+
+    dataset['Title'] = dataset['Title'].replace('Mlle', 'Miss')
+    dataset['Title'] = dataset['Title'].replace('Ms', 'Miss')
+    dataset['Title'] = dataset['Title'].replace('Mme', 'Mrs')
+
+train_df[['Title', 'Survived']].groupby(['Title'], as_index=False).mean()
+
+"""### Converting the categorical titles to ordinal:"""
+
+title_mapping = {"Mr": 1, "Miss": 2, "Mrs": 3, "Master": 4, "Rare": 5}
+for dataset in combine:
+    dataset['Title'] = dataset['Title'].map(title_mapping)
+    dataset['Title'] = dataset['Title'].fillna(0)
+
+train_df.head()
+
+"""## Dropping useless features:"""
+
+train_df = train_df.drop(['Ticket', 'Cabin', 'Name', 'PassengerId'], axis=1)
+test_df = test_df.drop(['Ticket', 'Cabin', 'Name'], axis=1)
+
+combine = [train_df, test_df]
 
