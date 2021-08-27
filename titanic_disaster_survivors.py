@@ -37,12 +37,20 @@ for dirname, _, filenames in os.walk('/kaggle/input'):
 - Embarked: departure port (C = Cherbourg, Q = Queenstown, S = Southampton)
 """
 
-# Commented out IPython magic to ensure Python compatibility.
 import numpy as np 
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 # %matplotlib inline
+
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC, LinearSVC
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.linear_model import Perceptron
+from sklearn.linear_model import SGDClassifier
+from sklearn.tree import DecisionTreeClassifier
 
 import tensorflow as tf
 
@@ -175,4 +183,26 @@ train_df = train_df.drop(['Ticket', 'Cabin', 'Name', 'PassengerId'], axis=1)
 test_df = test_df.drop(['Ticket', 'Cabin', 'Name'], axis=1)
 
 combine = [train_df, test_df]
+
+"""## Survivors according embarked port:"""
+
+train_df['Embarked'].unique()
+
+train_df[["Embarked", "Survived"]].groupby(['Embarked'], as_index=False).mean()
+
+"""- There are 2 null value."""
+
+train_df["Embarked"].value_counts()
+
+# most common
+train_df["Embarked"].mode()
+
+# Filling missing values with most common occurance
+for dataset in combine:
+    dataset['Embarked'] = dataset['Embarked'].fillna(train_df["Embarked"].mode()[0])
+
+for data in combine:
+  data["Embarked"] = data["Embarked"].map({'C': 0, 'Q': 1, 'S':2}).astype(int)
+
+train_df[["Embarked", "Survived"]].groupby(['Embarked'], as_index=False).mean()
 
