@@ -86,6 +86,12 @@ train_df['Survived'].value_counts().plot.pie(colors=('tab:red', 'tab:blue'), sha
                                             title='Porcentage of survivors', fontsize=18).set_ylabel=('')
 plt.show()
 
+"""### Correlations:"""
+
+plt.figure(figsize=(7,7))
+sns.heatmap(train_df.corr(), cmap='coolwarm')
+plt.show()
+
 """### Percentage of survivors in each class:"""
 
 train_df[['Pclass', 'Survived']].groupby(['Pclass'], as_index=False).mean().sort_values(by='Survived', ascending=False)
@@ -127,8 +133,13 @@ train_df.pivot_table('PassengerId', ['Sex'], 'Pclass', aggfunc='count')
 
 """- We note there is a huge difference between male and female percentage survivors.
 
-### Survivors according the amount of siblings/spouses on board:
+### Converting 'Sex' to categorical feature:
 """
+
+for dataset in combine:
+    dataset['Sex'] = dataset['Sex'].map( {'female': 0, 'male': 1} ).astype(int)
+
+"""### Survivors according the amount of siblings/spouses on board:"""
 
 train_df[["SibSp", "Survived"]].groupby(['SibSp'], as_index=False).mean().sort_values(by='Survived', ascending=False)
 
@@ -147,8 +158,57 @@ plt.show()
 - Oldest passengers - age = 80 - survived;
 - Large number of 15-25 year olds did not survive.
 
-## Creating new feature 'Title' extracting from existing 'Name':
+-------------------------------
+Completing a numerical continuous feature.
+
+Now we should start estimating and completing missing or null values.
 """
+
+guess_ages = np.zeros((2,3))
+guess_ages
+
+for dataset in combine:
+    for i in range(0, 2):
+        for j in range(0, 3):
+            guess_df = dataset[(dataset['Sex'] == i) & \
+                                  (dataset['Pclass'] == j+1)]['Age'].dropna()
+
+            age_guess = guess_df.median()
+
+            # Convert random age float to nearest .5 age
+            guess_ages[i,j] = int( age_guess/0.5 + 0.5 ) * 0.5
+            
+    for i in range(0, 2):
+        for j in range(0, 3):
+            dataset.loc[ (dataset.Age.isnull()) & (dataset.Sex == i) & (dataset.Pclass == j+1),\
+                    'Age'] = guess_ages[i,j]
+
+    dataset['Age'] = dataset['Age'].astype(int)
+
+train_df.head()
+
+"""---------------------------
+- Age bands to determine correlations with Survived:
+"""
+
+train_df['AgeBand'] = pd.cut(train_df['Age'], 10)
+train_df[['AgeBand', 'Survived']].groupby(['AgeBand'], as_index=False).mean()
+
+for dataset in combine:    
+    dataset.loc[ dataset['Age'] <= 8, 'Age'] = 0
+    dataset.loc[(dataset['Age'] > 8) & (dataset['Age'] <= 16), 'Age'] = 1
+    dataset.loc[(dataset['Age'] > 16) & (dataset['Age'] <= 24), 'Age'] = 2
+    dataset.loc[(dataset['Age'] > 24) & (dataset['Age'] <= 32), 'Age'] = 3
+    dataset.loc[(dataset['Age'] > 32) & (dataset['Age'] <= 40), 'Age'] = 4
+    dataset.loc[(dataset['Age'] > 40) & (dataset['Age'] <= 48), 'Age'] = 5
+    dataset.loc[(dataset['Age'] > 48) & (dataset['Age'] <= 56), 'Age'] = 6
+    dataset.loc[(dataset['Age'] > 56) & (dataset['Age'] <= 64), 'Age'] = 7
+    dataset.loc[(dataset['Age'] > 64) & (dataset['Age'] <= 72), 'Age'] = 8
+    dataset.loc[ dataset['Age'] > 72, 'Age'] = 9
+
+train_df['Age'].unique()
+
+"""## Creating new feature 'Title' extracting from existing 'Name':"""
 
 # extracting 'Title' from the 'Name'
 for dataset in combine:
@@ -184,6 +244,10 @@ test_df = test_df.drop(['Ticket', 'Cabin', 'Name'], axis=1)
 
 combine = [train_df, test_df]
 
+plt.figure(figsize=(7,7))
+sns.heatmap(train_df.corr(), cmap='coolwarm')
+plt.show()
+
 """## Survivors according embarked port:"""
 
 train_df['Embarked'].unique()
@@ -205,4 +269,8 @@ for data in combine:
   data["Embarked"] = data["Embarked"].map({'C': 0, 'Q': 1, 'S':2}).astype(int)
 
 train_df[["Embarked", "Survived"]].groupby(['Embarked'], as_index=False).mean()
+
+train_df.info()
+
+train_df.head()
 
