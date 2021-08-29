@@ -92,7 +92,7 @@ plt.figure(figsize=(7,7))
 sns.heatmap(train_df.corr(), cmap='coolwarm')
 plt.show()
 
-"""### Percentage of survivors in each class:"""
+"""### 'Pclass': Percentage of survivors in each class:"""
 
 train_df[['Pclass', 'Survived']].groupby(['Pclass'], as_index=False).mean().sort_values(by='Survived', ascending=False)
 
@@ -122,7 +122,7 @@ ax.annotate('47.3%', xy = (0.82, 0.16), fontsize = 16)
 ax.annotate('24.2%', xy = (1.83, 0.16), fontsize = 16)
 plt.show()
 
-"""### Percentage of survived women and men:"""
+"""### 'Sex': Percentage of survived women and men:"""
 
 # male and female percentage
 train_df['Sex'].value_counts(normalize=True) * 100
@@ -139,15 +139,15 @@ train_df.pivot_table('PassengerId', ['Sex'], 'Pclass', aggfunc='count')
 for dataset in combine:
     dataset['Sex'] = dataset['Sex'].map( {'female': 0, 'male': 1} ).astype(int)
 
-"""### Survivors according the amount of siblings/spouses on board:"""
+"""### 'SibSp': Survivors according the amount of siblings/spouses on board:"""
 
 train_df[["SibSp", "Survived"]].groupby(['SibSp'], as_index=False).mean().sort_values(by='Survived', ascending=False)
 
-"""### Survivors according the amount of parents/children on board:"""
+"""### 'Parch': Survivors according the amount of parents/children on board:"""
 
 train_df[["Parch", "Survived"]].groupby(['Parch'], as_index=False).mean().sort_values(by='Survived', ascending=False)
 
-"""## Suvivors by age:"""
+"""## 'Age': Suvivors by age:"""
 
 g = sns.FacetGrid(train_df, col='Survived', height=5)
 g.map(plt.hist, 'Age', bins=32)
@@ -185,7 +185,7 @@ for dataset in combine:
 
     dataset['Age'] = dataset['Age'].astype(int)
 
-train_df.head()
+train_df.head(2)
 
 """---------------------------
 - Age bands to determine correlations with Survived:
@@ -206,7 +206,12 @@ for dataset in combine:
     dataset.loc[(dataset['Age'] > 64) & (dataset['Age'] <= 72), 'Age'] = 8
     dataset.loc[ dataset['Age'] > 72, 'Age'] = 9
 
-train_df['Age'].unique()
+np.sort(train_df['Age'].unique())
+
+#drop the useless column
+train_df = train_df.drop(['AgeBand'], axis=1)
+combine = [train_df, test_df]
+train_df.head(1)
 
 """## Creating new feature 'Title' extracting from existing 'Name':"""
 
@@ -244,10 +249,6 @@ test_df = test_df.drop(['Ticket', 'Cabin', 'Name'], axis=1)
 
 combine = [train_df, test_df]
 
-plt.figure(figsize=(7,7))
-sns.heatmap(train_df.corr(), cmap='coolwarm')
-plt.show()
-
 """## Survivors according embarked port:"""
 
 train_df['Embarked'].unique()
@@ -273,4 +274,8 @@ train_df[["Embarked", "Survived"]].groupby(['Embarked'], as_index=False).mean()
 train_df.info()
 
 train_df.head()
+
+"""## 'Fare': """
+
+train_df[['Fare']].describe().T
 
