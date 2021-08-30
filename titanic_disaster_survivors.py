@@ -277,5 +277,50 @@ train_df.head()
 
 """## 'Fare': """
 
+train_df['Fare'].nunique()
+
 train_df[['Fare']].describe().T
+
+train_df['Fare'].mode()
+
+# intervals based on quantile: 25%, 50%, 75%
+pd.qcut(train_df['Fare'], 4)[0:4]
+
+"""- Convert the Fare feature to ordinal values based on quantiles:"""
+
+for dataset in combine:
+    dataset.loc[ dataset['Fare'] <= 7.91, 'Fare'] = 0
+    dataset.loc[(dataset['Fare'] > 7.91) & (dataset['Fare'] <= 14.454), 'Fare'] = 1
+    dataset.loc[(dataset['Fare'] > 14.454) & (dataset['Fare'] <= 31), 'Fare']   = 2
+    dataset.loc[ dataset['Fare'] > 31, 'Fare'] = 3
+    # dataset['Fare'] = dataset['Fare'].astype(int)
+
+combine = [train_df, test_df]
+
+train_df.head(3)
+
+train_df.info()
+
+test_df.info()
+
+"""# Models and Predictions:
+
+## Train Test split
+"""
+
+X_train = train_df.drop("Survived", axis=1)
+Y_train = train_df["Survived"]
+X_test  = test_df.drop("PassengerId", axis=1).copy()
+X_train.shape, Y_train.shape, X_test.shape
+
+"""### Logistic Regression:"""
+
+# initializing
+
+logreg = LogisticRegression()
+
+# training
+logreg.fit(X_train, Y_train)
+
+Y_pred = logreg.predict(X_test)
 
