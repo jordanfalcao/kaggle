@@ -54,6 +54,11 @@ from sklearn.tree import DecisionTreeClassifier
 
 import tensorflow as tf
 
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Activation, Dropout
+
+from sklearn.metrics import confusion_matrix
+
 """# Data"""
 
 train_df = pd.read_csv('train.csv')
@@ -277,6 +282,9 @@ train_df.head()
 
 """## 'Fare': """
 
+# filling missing value
+test_df['Fare'].fillna(test_df['Fare'].dropna().median(), inplace=True)
+
 train_df['Fare'].nunique()
 
 train_df[['Fare']].describe().T
@@ -323,4 +331,57 @@ logreg = LogisticRegression()
 logreg.fit(X_train, Y_train)
 
 Y_pred = logreg.predict(X_test)
+
+# simulated score
+logreg.score(X_train, Y_train) * 100
+
+# Y_pred
+
+"""### Random Forest:"""
+
+random_forest = RandomForestClassifier(n_estimators=100)
+
+random_forest.fit(X_train, Y_train)
+
+Y_pred_RF = random_forest.predict(X_test)
+
+random_forest.score(X_train, Y_train) * 100
+
+"""### Decision Tree:"""
+
+# Decision Tree
+
+decision_tree = DecisionTreeClassifier()
+
+decision_tree.fit(X_train, Y_train)
+
+Y_pred_DT = decision_tree.predict(X_test)
+
+round(decision_tree.score(X_train, Y_train) * 100, 2)
+
+"""### Artificial Neural Network:"""
+
+model = Sequential()
+
+model.add(Dense(units = 8, activation='relu'))
+model.add(Dense(units = 4, activation='relu'))
+
+# output layer with sigmoid activate fuction, better to classification problem
+model.add(Dense(units = 1, activation='sigmoid'))
+
+# For a binary classification problem
+model.compile(loss='binary_crossentropy', optimizer='adam')
+
+model.fit(x=X_train, y=Y_train, epochs=10, verbose = 1)
+
+model.history.history
+
+# testing predictions in another way
+Y_pred_ANN = (model.predict(X_test) > 0.5).astype("int32")
+
+# testing predictions in another way
+Y_pred_TEST = (model.predict(X_train) > 0.5).astype("int32")
+
+# we only get 1 False Negative and 3 False Positive
+print(confusion_matrix(Y_train, Y_pred_TEST))
 
