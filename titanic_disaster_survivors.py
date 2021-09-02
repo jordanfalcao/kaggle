@@ -152,6 +152,32 @@ train_df[["SibSp", "Survived"]].groupby(['SibSp'], as_index=False).mean().sort_v
 
 train_df[["Parch", "Survived"]].groupby(['Parch'], as_index=False).mean().sort_values(by='Survived', ascending=False)
 
+"""## 'IsAlone': Lets create a new feature if a person is alone or not:
+
+### First we combine 'Parch' and 'SibSp':
+"""
+
+for dataset in combine:
+    dataset['FamilySize'] = dataset['SibSp'] + dataset['Parch'] + 1 # plus 1
+
+train_df[['FamilySize', 'Survived']].groupby(['FamilySize'], as_index=False).mean().sort_values(by='Survived', ascending=False)
+
+"""### Now we create the new feature and drop the useless:"""
+
+for dataset in combine:
+    dataset['IsAlone'] = 0
+    dataset.loc[dataset['FamilySize'] == 1, 'IsAlone'] = 1
+
+train_df[['IsAlone', 'Survived']].groupby(['IsAlone'], as_index=False).mean()
+
+"""- Drop useless features:"""
+
+train_df = train_df.drop(['Parch', 'SibSp', 'FamilySize'], axis=1)
+test_df = test_df.drop(['Parch', 'SibSp', 'FamilySize'], axis=1)
+combine = [train_df, test_df]
+
+train_df.head()
+
 """## 'Age': Suvivors by age:"""
 
 g = sns.FacetGrid(train_df, col='Survived', height=5)
@@ -363,8 +389,8 @@ round(decision_tree.score(X_train, Y_train) * 100, 2)
 
 model = Sequential()
 
-model.add(Dense(units = 8, activation='relu'))
-model.add(Dense(units = 4, activation='relu'))
+model.add(Dense(units = 7, activation='relu'))
+model.add(Dense(units = 2, activation='relu'))
 
 # output layer with sigmoid activate fuction, better to classification problem
 model.add(Dense(units = 1, activation='sigmoid'))
@@ -372,7 +398,7 @@ model.add(Dense(units = 1, activation='sigmoid'))
 # For a binary classification problem
 model.compile(loss='binary_crossentropy', optimizer='adam')
 
-model.fit(x=X_train, y=Y_train, epochs=10, verbose = 1)
+model.fit(x=X_train, y=Y_train, epochs=4, verbose = 1)
 
 model.history.history
 
@@ -383,5 +409,5 @@ Y_pred_ANN = (model.predict(X_test) > 0.5).astype("int32")
 Y_pred_TEST = (model.predict(X_train) > 0.5).astype("int32")
 
 # we only get 1 False Negative and 3 False Positive
-print(confusion_matrix(Y_train, Y_pred_TEST))
+print(confusion_matrix(Y_train,Y_pred_TEST))
 
