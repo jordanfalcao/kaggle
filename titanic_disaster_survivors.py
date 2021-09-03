@@ -172,11 +172,17 @@ train_df[['IsAlone', 'Survived']].groupby(['IsAlone'], as_index=False).mean()
 
 """- Drop useless features:"""
 
-train_df = train_df.drop(['Parch', 'SibSp', 'FamilySize'], axis=1)
-test_df = test_df.drop(['Parch', 'SibSp', 'FamilySize'], axis=1)
-combine = [train_df, test_df]
+# train_df = train_df.drop(['Parch', 'SibSp'], axis=1)
+# test_df = test_df.drop(['Parch', 'SibSp'], axis=1)
+# combine = [train_df, test_df]
 
-train_df.head()
+# train_df.head()
+
+# train_df = train_df.drop(['Parch', 'SibSp', 'FamilySize'], axis=1)
+# test_df = test_df.drop(['Parch', 'SibSp', 'FamilySize'], axis=1)
+# combine = [train_df, test_df]
+
+# train_df.head()
 
 """## 'Age': Suvivors by age:"""
 
@@ -222,20 +228,27 @@ train_df.head(2)
 - Age bands to determine correlations with Survived:
 """
 
-train_df['AgeBand'] = pd.cut(train_df['Age'], 10)
+train_df['AgeBand'] = pd.cut(train_df['Age'], 5)
 train_df[['AgeBand', 'Survived']].groupby(['AgeBand'], as_index=False).mean()
 
 for dataset in combine:    
-    dataset.loc[ dataset['Age'] <= 8, 'Age'] = 0
-    dataset.loc[(dataset['Age'] > 8) & (dataset['Age'] <= 16), 'Age'] = 1
-    dataset.loc[(dataset['Age'] > 16) & (dataset['Age'] <= 24), 'Age'] = 2
-    dataset.loc[(dataset['Age'] > 24) & (dataset['Age'] <= 32), 'Age'] = 3
-    dataset.loc[(dataset['Age'] > 32) & (dataset['Age'] <= 40), 'Age'] = 4
-    dataset.loc[(dataset['Age'] > 40) & (dataset['Age'] <= 48), 'Age'] = 5
-    dataset.loc[(dataset['Age'] > 48) & (dataset['Age'] <= 56), 'Age'] = 6
-    dataset.loc[(dataset['Age'] > 56) & (dataset['Age'] <= 64), 'Age'] = 7
-    dataset.loc[(dataset['Age'] > 64) & (dataset['Age'] <= 72), 'Age'] = 8
-    dataset.loc[ dataset['Age'] > 72, 'Age'] = 9
+    dataset.loc[ dataset['Age'] <= 16, 'Age'] = 0
+    dataset.loc[(dataset['Age'] > 16) & (dataset['Age'] <= 32), 'Age'] = 1
+    dataset.loc[(dataset['Age'] > 32) & (dataset['Age'] <= 48), 'Age'] = 2
+    dataset.loc[(dataset['Age'] > 48) & (dataset['Age'] <= 64), 'Age'] = 3
+    dataset.loc[ dataset['Age'] > 64, 'Age']
+
+# for dataset in combine:    
+#     dataset.loc[ dataset['Age'] <= 8, 'Age'] = 0
+#     dataset.loc[(dataset['Age'] > 8) & (dataset['Age'] <= 16), 'Age'] = 1
+#     dataset.loc[(dataset['Age'] > 16) & (dataset['Age'] <= 24), 'Age'] = 2
+#     dataset.loc[(dataset['Age'] > 24) & (dataset['Age'] <= 32), 'Age'] = 3
+#     dataset.loc[(dataset['Age'] > 32) & (dataset['Age'] <= 40), 'Age'] = 4
+#     dataset.loc[(dataset['Age'] > 40) & (dataset['Age'] <= 48), 'Age'] = 5
+#     dataset.loc[(dataset['Age'] > 48) & (dataset['Age'] <= 56), 'Age'] = 6
+#     dataset.loc[(dataset['Age'] > 56) & (dataset['Age'] <= 64), 'Age'] = 7
+#     dataset.loc[(dataset['Age'] > 64) & (dataset['Age'] <= 72), 'Age'] = 8
+#     dataset.loc[ dataset['Age'] > 72, 'Age'] = 9
 
 np.sort(train_df['Age'].unique())
 
@@ -243,6 +256,13 @@ np.sort(train_df['Age'].unique())
 train_df = train_df.drop(['AgeBand'], axis=1)
 combine = [train_df, test_df]
 train_df.head(1)
+
+"""### Creating an artificial feature, combining 'Age' and 'Pclass':"""
+
+for dataset in combine:
+    dataset['Age*Class'] = dataset['Age'] * dataset['Pclass']
+
+train_df.loc[:, ['Age*Class', 'Age', 'Pclass']].head(2)
 
 """## Creating new feature 'Title' extracting from existing 'Name':"""
 
@@ -263,6 +283,25 @@ for dataset in combine:
     dataset['Title'] = dataset['Title'].replace('Mme', 'Mrs')
 
 train_df[['Title', 'Survived']].groupby(['Title'], as_index=False).mean()
+
+"""## 'Cabin':"""
+
+train_df['Cabin'].unique()
+
+"""- We note that the first letter starts with 'A', 'B', 'C', 'D', 'E', 'F', 'G' and 'U'. So lets categorize according it."""
+
+import re
+deck = {"A": 1, "B": 2, "C": 3, "D": 4, "E": 5, "F": 6, "G": 7, "U": 8}
+data = [train_df, test_df]
+
+for dataset in data:
+    dataset['Cabin'] = dataset['Cabin'].fillna("U0")
+    dataset['Deck'] = dataset['Cabin'].map(lambda x: re.compile("([a-zA-Z]+)").search(x).group())
+    dataset['Deck'] = dataset['Deck'].map(deck)
+    dataset['Deck'] = dataset['Deck'].fillna(0)
+    dataset['Deck'] = dataset['Deck'].astype(int)
+
+np.sort(train_df['Deck'].unique())
 
 """### Converting the categorical titles to ordinal:"""
 
@@ -359,7 +398,8 @@ logreg.fit(X_train, Y_train)
 Y_pred = logreg.predict(X_test)
 
 # simulated score
-logreg.score(X_train, Y_train) * 100
+acc_log = round(logreg.score(X_train, Y_train) * 100, 2)
+acc_log
 
 # Y_pred
 
@@ -371,7 +411,8 @@ random_forest.fit(X_train, Y_train)
 
 Y_pred_RF = random_forest.predict(X_test)
 
-random_forest.score(X_train, Y_train) * 100
+acc_random_forest = round(random_forest.score(X_train, Y_train) * 100, 2)
+acc_random_forest
 
 """### Decision Tree:"""
 
@@ -383,14 +424,37 @@ decision_tree.fit(X_train, Y_train)
 
 Y_pred_DT = decision_tree.predict(X_test)
 
-round(decision_tree.score(X_train, Y_train) * 100, 2)
+acc_decision_tree = round(decision_tree.score(X_train, Y_train) * 100, 2)
+acc_decision_tree
+
+"""## Support Vector Machine:"""
+
+# Support Vector Machines
+
+svc = SVC()
+svc.fit(X_train, Y_train)
+
+acc_svc = round(svc.score(X_train, Y_train) * 100, 2)
+acc_svc
+
+"""## Stochastic Gradient Descent"""
+
+# Stochastic Gradient Descent
+
+sgd = SGDClassifier()
+sgd.fit(X_train, Y_train)
+
+Y_pred_SGD = sgd.predict(X_test)
+
+acc_sgd = round(sgd.score(X_train, Y_train) * 100, 2)
+acc_sgd
 
 """### Artificial Neural Network:"""
 
 model = Sequential()
 
-model.add(Dense(units = 7, activation='relu'))
-model.add(Dense(units = 2, activation='relu'))
+model.add(Dense(units = 12, activation='relu'))
+model.add(Dense(units = 3, activation='relu'))
 
 # output layer with sigmoid activate fuction, better to classification problem
 model.add(Dense(units = 1, activation='sigmoid'))
@@ -398,7 +462,7 @@ model.add(Dense(units = 1, activation='sigmoid'))
 # For a binary classification problem
 model.compile(loss='binary_crossentropy', optimizer='adam')
 
-model.fit(x=X_train, y=Y_train, epochs=4, verbose = 1)
+model.fit(x=X_train, y=Y_train, epochs=7, verbose = 1)
 
 model.history.history
 
@@ -410,4 +474,34 @@ Y_pred_TEST = (model.predict(X_train) > 0.5).astype("int32")
 
 # we only get 1 False Negative and 3 False Positive
 print(confusion_matrix(Y_train,Y_pred_TEST))
+
+"""## Ranking models:"""
+
+models = pd.DataFrame({
+    'Model': ['Support Vector Machines','Logistic Regression', 
+              'Random Forest', 'Stochastic Gradient Decent', 
+              'Decision Tree'],
+    'Score': [acc_svc, acc_log, acc_random_forest, 
+              acc_sgd, acc_decision_tree]})
+models.sort_values(by='Score', ascending=False)
+
+"""# Submission"""
+
+submission = pd.DataFrame({
+        "PassengerId": test_df["PassengerId"],
+        "Survived": Y_pred_RF
+    })
+
+submission
+
+submission.to_csv('submission.csv', index=False)
+
+"""### ANN Submission:"""
+
+# submission = pd.DataFrame({
+#         "PassengerId": test_df["PassengerId"],
+#         "Survived": Y_pred_ANN.values
+#     })
+
+Y_pred_ANN
 
