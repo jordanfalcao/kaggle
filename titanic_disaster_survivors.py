@@ -172,11 +172,11 @@ train_df[['IsAlone', 'Survived']].groupby(['IsAlone'], as_index=False).mean()
 
 """- Drop useless features:"""
 
-# train_df = train_df.drop(['Parch', 'SibSp'], axis=1)
-# test_df = test_df.drop(['Parch', 'SibSp'], axis=1)
-# combine = [train_df, test_df]
+train_df = train_df.drop(['Parch', 'SibSp'], axis=1)
+test_df = test_df.drop(['Parch', 'SibSp'], axis=1)
+combine = [train_df, test_df]
 
-# train_df.head()
+train_df.head()
 
 # train_df = train_df.drop(['Parch', 'SibSp', 'FamilySize'], axis=1)
 # test_df = test_df.drop(['Parch', 'SibSp', 'FamilySize'], axis=1)
@@ -503,5 +503,5 @@ submission.to_csv('submission.csv', index=False)
 #         "Survived": Y_pred_ANN.values
 #     })
 
-Y_pred_ANN
+Y_pred_ANN[0][0]
 
