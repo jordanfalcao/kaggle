@@ -21,6 +21,18 @@ test_df = pd.read_csv('test.csv')
 
 train_df = pd.read_csv('train.csv')
 
+train_df.head(1)
+
 train_df.shape
 
 test_df.shape
+
+# Drop 'label' column
+X_train = train_df.drop(labels = ["label"],axis = 1)
+
+# only label column
+Y_train = train_df["label"]
+
+X_train = X_train.values.reshape(-1,28,28,1)
+g = plt.imshow(X_train[0][:,:,0])
+
