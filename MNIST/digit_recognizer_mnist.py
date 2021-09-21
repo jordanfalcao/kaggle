@@ -36,3 +36,16 @@ Y_train = train_df["label"]
 X_train = X_train.values.reshape(-1,28,28,1)
 g = plt.imshow(X_train[0][:,:,0])
 
+"""## Preprocessing Data"""
+
+Y_train
+
+"""
+Our labels are literally categories of numbers. We need to translate this to be "one hot encoded" so our CNN can understand, otherwise it will think this is some sort of regression problem on a continuous axis. Keras has an easy to use function for this:"""
+
+from tensorflow.keras.utils import to_categorical
+
+Y_train_cat = to_categorical(Y_train)
+
+Y_train_cat
+
