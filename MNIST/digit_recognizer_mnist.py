@@ -16,12 +16,29 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Activation, Dropout
 
 from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import train_test_split
+
+#  mounts the Google drive
+from google.colab import drive
+drive.mount('/content/drive')
+
+# test path from the drive
+test_path = '/content/drive/MyDrive/Kaggle/Digit_Recognizer/test.csv'
+
+# train path from the drive
+train_path = '/content/drive/MyDrive/Kaggle/Digit_Recognizer/train.csv'
+
+# copying the file from drive to colab
+!cp "{test_path}" .
+
+# copying the file from drive to colab
+!cp "{train_path}" .
 
 test_df = pd.read_csv('test.csv')
 
 train_df = pd.read_csv('train.csv')
 
-train_df.head(1)
+train_df.head(2)
 
 train_df.shape
 
@@ -32,6 +49,12 @@ X_train = train_df.drop(labels = ["label"],axis = 1)
 
 # only label column
 Y_train = train_df["label"]
+
+plt.figure(figsize=(8,6))
+sns.countplot(x = Y_train)
+plt.show()
+
+Y_train.value_counts()
 
 X_train = X_train.values.reshape(-1,28,28,1)
 g = plt.imshow(X_train[0][:,:,0])
@@ -47,5 +70,15 @@ from tensorflow.keras.utils import to_categorical
 
 Y_train_cat = to_categorical(Y_train)
 
-Y_train_cat
+print(Y_train_cat[0])
+
+"""### Processing X Data"""
+
+X_train[0][:,:,0].max()
+
+X_train[0][:,:,0].min()
+
+"""We should normalize the X data"""
+
+plt.imshow(X_train[1729][0])
 
