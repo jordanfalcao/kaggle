@@ -50,35 +50,62 @@ X_train = train_df.drop(labels = ["label"],axis = 1)
 # only label column
 Y_train = train_df["label"]
 
+"""Each number amount:"""
+
 plt.figure(figsize=(8,6))
 sns.countplot(x = Y_train)
 plt.show()
 
 Y_train.value_counts()
 
+"""# Preprocessing Data
+
+## Missing values
+"""
+
+X_train.isnull().sum().agg(['count', 'mean', 'sum', 'min', 'max'])
+
+test_df.isnull().sum().agg(['count', 'mean', 'sum', 'min', 'max'])
+
+"""## Normalization
+
+We should normalize the X data:
+"""
+
+X_train.iloc[0].max()
+
+X_train.iloc[0].min()
+
+X_train = X_train / 255.0
+test_df = test_df / 255.0
+
+X_train.iloc[0].max()
+
+"""## Reshaping
+
+Reshape image in 3 dimensions (height = 28px, width = 28px , canal = 1):
+"""
+
 X_train = X_train.values.reshape(-1,28,28,1)
-g = plt.imshow(X_train[0][:,:,0])
+test_df = test_df.values.reshape(-1,28,28,1)
 
-"""## Preprocessing Data"""
-
-Y_train
+single_image = plt.imshow(X_train[10][:,:,0])
 
 """
 Our labels are literally categories of numbers. We need to translate this to be "one hot encoded" so our CNN can understand, otherwise it will think this is some sort of regression problem on a continuous axis. Keras has an easy to use function for this:"""
 
 from tensorflow.keras.utils import to_categorical
 
+Y_train[0]
+
 Y_train_cat = to_categorical(Y_train)
 
 print(Y_train_cat[0])
 
-"""### Processing X Data"""
+"""## Split training and valdiation set
 
-X_train[0][:,:,0].max()
+### Processing X Data
+"""
 
-X_train[0][:,:,0].min()
-
-"""We should normalize the X data"""
-
-plt.imshow(X_train[1729][0])
+# plt.imshow(X_train[1729][0])
 
