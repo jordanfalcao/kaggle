@@ -13,10 +13,11 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Activation, Dropout
+from tensorflow.keras.layers import Dense, Activation, Dropout, Conv2D, MaxPool2D, Flatten
 
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
+from tensorflow.keras.callbacks import EarlyStopping
 
 #  mounts the Google drive
 from google.colab import drive
@@ -67,7 +68,9 @@ X_train.isnull().sum().agg(['count', 'mean', 'sum', 'min', 'max'])
 
 test_df.isnull().sum().agg(['count', 'mean', 'sum', 'min', 'max'])
 
-"""## Normalization
+"""No missing values.
+
+## Normalization
 
 We should normalize the X data:
 """
@@ -89,7 +92,7 @@ Reshape image in 3 dimensions (height = 28px, width = 28px , canal = 1):
 X_train = X_train.values.reshape(-1,28,28,1)
 test_df = test_df.values.reshape(-1,28,28,1)
 
-single_image = plt.imshow(X_train[10][:,:,0])
+single_image = plt.imshow(X_train[10][:,:,0], cmap='Greys')
 
 """
 Our labels are literally categories of numbers. We need to translate this to be "one hot encoded" so our CNN can understand, otherwise it will think this is some sort of regression problem on a continuous axis. Keras has an easy to use function for this:"""
@@ -102,10 +105,58 @@ Y_train_cat = to_categorical(Y_train)
 
 print(Y_train_cat[0])
 
-"""## Split training and valdiation set
+"""## Split training and valdiation set"""
 
-### Processing X Data
-"""
+# only 15% for validation set
+X_train, X_valid, y_train, y_valid = train_test_split(X_train, Y_train_cat, test_size=0.15)
 
-# plt.imshow(X_train[1729][0])
+g = plt.imshow(X_train[5][:,:,0])
+
+y_train[5]
+
+"""## Creating and Training Model"""
+
+model = Sequential()
+
+# CONVOLUTIONAL LAYER
+model.add(Conv2D(filters=32, kernel_size=(4,4), input_shape=(28, 28, 1), activation='relu')) # filters almost always 2^n
+# POOLING LAYER
+model.add(MaxPool2D(pool_size=(2,2))) # in this case, half of the kernel size
+
+# FLATTEN IMAGES FROM 28 by 28 to 764 BEFORE FINAL LAYER
+model.add(Flatten())
+
+# 128 NEURONS IN DENSE HIDDEN LAYER
+model.add(Dense(128, activation='relu'))
+
+# LAST LAYER IS THE CLASSIFIER, THUS 10 POSSIBLE CLASSES
+model.add(Dense(10, activation='softmax'))  # SOFTMAX --> MULTICLASS PROBLEM
+
+# https://keras.io/metrics/
+model.compile(optimizer='adam',
+              loss='categorical_crossentropy',
+              metrics = ['accuracy'])
+
+model.summary()
+
+early_stop = EarlyStopping(monitor='val_loss', patience=3)
+
+model.fit(X_train, y_train, epochs=15, validation_data=(X_valid, y_valid), callbacks=[early_stop])
+
+model.metrics_names
+
+metrics = pd.DataFrame(model.history.history)
+
+metrics
+
+metrics[['loss', 'val_loss']].plot()
+plt.show()
+
+metrics[['accuracy', 'val_accuracy']].plot()
+plt.show()
+
+print(model.metrics_names)
+print(model.evaluate(X_valid, y_valid, verbose = 0))
+
+# model.save('mnist_CNN_kaggle_model.h5')
 
