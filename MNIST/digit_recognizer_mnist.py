@@ -14,11 +14,12 @@ import matplotlib.pyplot as plt
 
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Activation, Dropout, Conv2D, MaxPool2D, Flatten
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras.models import load_model
 
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.callbacks import EarlyStopping
 
 #  mounts the Google drive
 from google.colab import drive
@@ -161,15 +162,26 @@ print(model.evaluate(X_valid, y_valid, verbose = 0))
 
 # model.save('mnist_CNN_kaggle_model.h5')
 
+# grab model and scaler
+mnist_model = load_model("mnist_CNN_kaggle_model.h5")
+
 """## Image Generator"""
 
-# image_gen = ImageDataGenerator(rotation_range=20, # rotate the image 20 degrees
-#                                width_shift_range=0.10, # Shift the pic width by a max of 5%
-#                                height_shift_range=0.10, # Shift the pic height by a max of 5%
-#                                #rescale=1/255, # our data is already scaled.
-#                                shear_range=0.1, # Shear means cutting away part of the image (max 10%)
-#                                zoom_range=0.1, # Zoom in by 10% max
-#                                horizontal_flip=True, # Allo horizontal flipping
-#                                fill_mode='nearest' # Fill in missing pixels with the nearest filled value
-#                               )
+image_gen = ImageDataGenerator(rotation_range=20, # rotate the image 20 degrees
+                               width_shift_range=0.10, # Shift the pic width by a max of 5%
+                               height_shift_range=0.10, # Shift the pic height by a max of 5%
+                               #rescale=1/255, # our data is already scaled.
+                               shear_range=0.1, # Shear means cutting away part of the image (max 10%)
+                               zoom_range=0.1, # Zoom in by 10% max
+                               horizontal_flip=True, # Allo horizontal flipping
+                               fill_mode='nearest' # Fill in missing pixels with the nearest filled value
+                              )
+
+# results = model.fit_generator(X_train, y_train, epochs=20,
+#                               validation_data=[X_valid, y_valid],
+#                               callbacks=[early_stop])
+
+pred_test = mnist_model.predict(test_df)
+
+pred_test.shape
 
