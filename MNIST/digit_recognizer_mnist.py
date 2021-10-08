@@ -20,6 +20,7 @@ from tensorflow.keras.models import load_model
 
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report, confusion_matrix
 
 #  mounts the Google drive
 from google.colab import drive
@@ -184,4 +185,18 @@ image_gen = ImageDataGenerator(rotation_range=20, # rotate the image 20 degrees
 pred_test = mnist_model.predict(test_df)
 
 pred_test.shape
+
+# pred_test
+
+pred_train = mnist_model.predict(X_train)
+
+test_df.shape
+
+X_train.shape
+
+print(classification_report(y_train, pred_train))
+
+y_train.shape
+
+X_train.shape
 
